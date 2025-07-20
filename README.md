@@ -1,4 +1,12 @@
-Low-effort way of calling the rust-crate [`exact-clustering`](https://github.com/lumi-a/exact-clustering) from Python. Consult [docs.rs](https://docs.rs/exact-clustering) for more extensive documentation.
+![PyPI - Version](https://img.shields.io/pypi/v/exact-clustering)
+
+Low-effort way of calling the rust-crate [`exact-clustering`](https://github.com/lumi-a/exact-clustering) from Python. 
+
+```sh
+pip install exact-clustering
+```
+
+Consult [docs.rs](https://docs.rs/exact-clustering) for more extensive documentation.
 
 ```py
 from exact_clustering import *
