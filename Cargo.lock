@@ -43,18 +43,18 @@ checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 
 [[package]]
 name = "exact-clustering"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
- "exact-clustering 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "exact-clustering 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "ndarray",
  "pyo3",
 ]
 
 [[package]]
 name = "exact-clustering"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dafb202abff31c6b551c0ab3990bbfebfe4336274ac8bdd85dbcd29035138cad"
+checksum = "802369e815783227eaba5e68717bf673d8ef80bcd13f82c1c98c37c0ac3a510a"
 dependencies = [
  "clustering",
  "ndarray",
