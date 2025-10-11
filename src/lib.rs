@@ -1,6 +1,10 @@
 use exact_clustering_rs::{Cost, Point, WeightedPoint};
 use ndarray::prelude::*;
 use pyo3::{exceptions::PyValueError, prelude::*};
+use pyo3_stub_gen::{
+    define_stub_info_gatherer,
+    derive::{gen_stub_pyclass, gen_stub_pymethods},
+};
 
 struct ClusteringInstance<T: Cost>(T);
 impl<T: Cost> ClusteringInstance<T> {
@@ -15,9 +19,11 @@ impl<T: Cost> ClusteringInstance<T> {
 
 macro_rules! unweighted {
     ($name: ident, $type: path, $constructor: path) => {
+        #[gen_stub_pyclass]
         #[pyclass]
         pub struct $name(ClusteringInstance<$type>);
 
+        #[gen_stub_pymethods]
         #[pymethods]
         impl $name {
             #[new]
@@ -39,9 +45,11 @@ macro_rules! unweighted {
 }
 macro_rules! weighted {
     ($name: ident, $type: path, $constructor: path) => {
+        #[gen_stub_pyclass]
         #[pyclass]
         pub struct $name(ClusteringInstance<$type>);
 
+        #[gen_stub_pymethods]
         #[pymethods]
         impl $name {
             #[new]
@@ -128,3 +136,5 @@ fn exact_clustering(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<UnweightedKMedianL2Squared>()?;
     Ok(())
 }
+
+define_stub_info_gatherer!(stub_info);
