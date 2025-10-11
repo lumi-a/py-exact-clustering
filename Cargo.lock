@@ -100,16 +100,6 @@ checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 [[package]]
 name = "exact-clustering"
 version = "0.5.0"
-dependencies = [
- "exact-clustering 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "ndarray",
- "pyo3",
- "pyo3-stub-gen",
-]
-
-[[package]]
-name = "exact-clustering"
-version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "37c07e128d5e507ea211775945edeb74274673d00a7f3cb6658863d08987dbbf"
 dependencies = [
@@ -118,6 +108,16 @@ dependencies = [
  "pathfinding",
  "rustc-hash",
  "smallvec",
+]
+
+[[package]]
+name = "exact-clustering"
+version = "0.5.1"
+dependencies = [
+ "exact-clustering 0.5.0",
+ "ndarray",
+ "pyo3",
+ "pyo3-stub-gen",
 ]
 
 [[package]]
