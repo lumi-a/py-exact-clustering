@@ -1,6 +1,109 @@
-use exact_clustering_rs::{Cost, Discrete, KMeans, Point, WeightedKMeans, WeightedPoint};
+use exact_clustering_rs::{Cost, Point, WeightedPoint};
 use ndarray::prelude::*;
 use pyo3::{exceptions::PyValueError, prelude::*};
+
+struct ClusteringInstance<T: Cost>(T);
+impl<T: Cost> ClusteringInstance<T> {
+    fn price_of_hierarchy(&mut self) -> f64 {
+        self.0.price_of_hierarchy().0
+    }
+
+    fn price_of_greedy(&mut self) -> f64 {
+        self.0.price_of_greedy().0
+    }
+}
+
+macro_rules! unweighted {
+    ($name: ident, $type: path, $constructor: path) => {
+        #[pyclass]
+        pub struct $name(ClusteringInstance<$type>);
+
+        #[pymethods]
+        impl $name {
+            #[new]
+            pub fn new(data: Vec<Vec<f64>>) -> PyResult<Self> {
+                let instance = $constructor(&to_points(data))
+                    .map_err(|e| PyValueError::new_err(e.to_string()))?;
+                Ok(Self(ClusteringInstance(instance)))
+            }
+
+            fn price_of_hierarchy(&mut self) -> f64 {
+                self.0.price_of_hierarchy()
+            }
+
+            fn price_of_greedy(&mut self) -> f64 {
+                self.0.price_of_greedy()
+            }
+        }
+    };
+}
+macro_rules! weighted {
+    ($name: ident, $type: path, $constructor: path) => {
+        #[pyclass]
+        pub struct $name(ClusteringInstance<$type>);
+
+        #[pymethods]
+        impl $name {
+            #[new]
+            pub fn new(data: Vec<(f64, Vec<f64>)>) -> PyResult<Self> {
+                let instance = $constructor(&to_weighted_points(data))
+                    .map_err(|e| PyValueError::new_err(e.to_string()))?;
+                Ok(Self(ClusteringInstance(instance)))
+            }
+
+            fn price_of_hierarchy(&mut self) -> f64 {
+                self.0.price_of_hierarchy()
+            }
+
+            fn price_of_greedy(&mut self) -> f64 {
+                self.0.price_of_greedy()
+            }
+        }
+    };
+}
+
+unweighted!(
+    KMeans,
+    exact_clustering_rs::KMeans,
+    exact_clustering_rs::KMeans::new
+);
+weighted!(
+    WeightedKMeans,
+    exact_clustering_rs::WeightedKMeans,
+    exact_clustering_rs::WeightedKMeans::new
+);
+
+unweighted!(
+    KMedianL1,
+    exact_clustering_rs::KMedian,
+    exact_clustering_rs::KMedian::l1
+);
+unweighted!(
+    KMedianL2,
+    exact_clustering_rs::KMedian,
+    exact_clustering_rs::KMedian::l2
+);
+unweighted!(
+    KMedianL2Squared,
+    exact_clustering_rs::KMedian,
+    exact_clustering_rs::KMedian::l2_squared
+);
+
+weighted!(
+    UnweightedKMedianL1,
+    exact_clustering_rs::KMedian,
+    exact_clustering_rs::KMedian::weighted_l1
+);
+weighted!(
+    UnweightedKMedianL2,
+    exact_clustering_rs::KMedian,
+    exact_clustering_rs::KMedian::weighted_l2
+);
+weighted!(
+    UnweightedKMedianL2Squared,
+    exact_clustering_rs::KMedian,
+    exact_clustering_rs::KMedian::weighted_l2_squared
+);
 
 fn to_points(points: Vec<Vec<f64>>) -> Vec<Point> {
     points.into_iter().map(Array1::from_vec).collect()
@@ -13,142 +116,15 @@ fn to_weighted_points(weighted_points: Vec<(f64, Vec<f64>)>) -> Vec<WeightedPoin
         .collect()
 }
 
-fn hierarchy<C: Cost>(data: Result<C, exact_clustering_rs::Error>) -> PyResult<f64> {
-    Ok(data
-        .map_err(|e| PyValueError::new_err(e.to_string()))?
-        .price_of_hierarchy()
-        .0)
-}
-
-fn greedy<C: Cost>(data: Result<C, exact_clustering_rs::Error>) -> PyResult<f64> {
-    Ok(data
-        .map_err(|e| PyValueError::new_err(e.to_string()))?
-        .price_of_greedy()
-        .0)
-}
-
-////////////////
-
-#[pyfunction]
-fn unweighted_continuous_kmeans_price_of_hierarchy(points: Vec<Vec<f64>>) -> PyResult<f64> {
-    hierarchy(KMeans::new(&to_points(points)))
-}
-#[pyfunction]
-fn weighted_continuous_kmeans_price_of_hierarchy(
-    weighted_points: Vec<(f64, Vec<f64>)>,
-) -> PyResult<f64> {
-    hierarchy(WeightedKMeans::new(&to_weighted_points(weighted_points)))
-}
-#[pyfunction]
-fn unweighted_discrete_kmeans_price_of_hierarchy(points: Vec<Vec<f64>>) -> PyResult<f64> {
-    hierarchy(Discrete::kmeans(&to_points(points)))
-}
-#[pyfunction]
-fn weighted_discrete_kmeans_price_of_hierarchy(
-    weighted_points: Vec<(f64, Vec<f64>)>,
-) -> PyResult<f64> {
-    hierarchy(Discrete::weighted_kmeans(&to_weighted_points(
-        weighted_points,
-    )))
-}
-#[pyfunction]
-fn unweighted_discrete_kmedian_price_of_hierarchy(points: Vec<Vec<f64>>) -> PyResult<f64> {
-    hierarchy(Discrete::kmedian(&to_points(points)))
-}
-#[pyfunction]
-fn weighted_discrete_kmedian_price_of_hierarchy(
-    weighted_points: Vec<(f64, Vec<f64>)>,
-) -> PyResult<f64> {
-    hierarchy(Discrete::weighted_kmedian(&to_weighted_points(
-        weighted_points,
-    )))
-}
-#[pyfunction]
-fn unweighted_continuous_kmeans_price_of_greedy(points: Vec<Vec<f64>>) -> PyResult<f64> {
-    greedy(KMeans::new(&to_points(points)))
-}
-#[pyfunction]
-fn weighted_continuous_kmeans_price_of_greedy(
-    weighted_points: Vec<(f64, Vec<f64>)>,
-) -> PyResult<f64> {
-    greedy(WeightedKMeans::new(&to_weighted_points(weighted_points)))
-}
-#[pyfunction]
-fn unweighted_discrete_kmeans_price_of_greedy(points: Vec<Vec<f64>>) -> PyResult<f64> {
-    greedy(Discrete::kmeans(&to_points(points)))
-}
-#[pyfunction]
-fn weighted_discrete_kmeans_price_of_greedy(
-    weighted_points: Vec<(f64, Vec<f64>)>,
-) -> PyResult<f64> {
-    greedy(Discrete::weighted_kmeans(&to_weighted_points(
-        weighted_points,
-    )))
-}
-#[pyfunction]
-fn unweighted_discrete_kmedian_price_of_greedy(points: Vec<Vec<f64>>) -> PyResult<f64> {
-    greedy(Discrete::kmedian(&to_points(points)))
-}
-#[pyfunction]
-fn weighted_discrete_kmedian_price_of_greedy(
-    weighted_points: Vec<(f64, Vec<f64>)>,
-) -> PyResult<f64> {
-    greedy(Discrete::weighted_kmedian(&to_weighted_points(
-        weighted_points,
-    )))
-}
-
-///////////
-
 #[pymodule]
 fn exact_clustering(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(
-        unweighted_continuous_kmeans_price_of_hierarchy,
-        m
-    )?)?;
-    m.add_function(wrap_pyfunction!(
-        weighted_continuous_kmeans_price_of_hierarchy,
-        m
-    )?)?;
-    m.add_function(wrap_pyfunction!(
-        unweighted_discrete_kmeans_price_of_hierarchy,
-        m
-    )?)?;
-    m.add_function(wrap_pyfunction!(
-        weighted_discrete_kmeans_price_of_hierarchy,
-        m
-    )?)?;
-    m.add_function(wrap_pyfunction!(
-        unweighted_discrete_kmedian_price_of_hierarchy,
-        m
-    )?)?;
-    m.add_function(wrap_pyfunction!(
-        weighted_discrete_kmedian_price_of_hierarchy,
-        m
-    )?)?;
-    m.add_function(wrap_pyfunction!(
-        unweighted_continuous_kmeans_price_of_greedy,
-        m
-    )?)?;
-    m.add_function(wrap_pyfunction!(
-        weighted_continuous_kmeans_price_of_greedy,
-        m
-    )?)?;
-    m.add_function(wrap_pyfunction!(
-        unweighted_discrete_kmeans_price_of_greedy,
-        m
-    )?)?;
-    m.add_function(wrap_pyfunction!(
-        weighted_discrete_kmeans_price_of_greedy,
-        m
-    )?)?;
-    m.add_function(wrap_pyfunction!(
-        unweighted_discrete_kmedian_price_of_greedy,
-        m
-    )?)?;
-    m.add_function(wrap_pyfunction!(
-        weighted_discrete_kmedian_price_of_greedy,
-        m
-    )?)?;
+    m.add_class::<KMeans>()?;
+    m.add_class::<WeightedKMeans>()?;
+    m.add_class::<KMedianL1>()?;
+    m.add_class::<KMedianL2>()?;
+    m.add_class::<KMedianL2Squared>()?;
+    m.add_class::<UnweightedKMedianL1>()?;
+    m.add_class::<UnweightedKMedianL2>()?;
+    m.add_class::<UnweightedKMedianL2Squared>()?;
     Ok(())
 }
