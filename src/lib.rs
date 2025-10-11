@@ -98,17 +98,17 @@ unweighted!(
 );
 
 weighted!(
-    UnweightedKMedianL1,
+    WeightedKMedianL1,
     exact_clustering_rs::KMedian,
     exact_clustering_rs::KMedian::weighted_l1
 );
 weighted!(
-    UnweightedKMedianL2,
+    WeightedKMedianL2,
     exact_clustering_rs::KMedian,
     exact_clustering_rs::KMedian::weighted_l2
 );
 weighted!(
-    UnweightedKMedianL2Squared,
+    WeightedKMedianL2Squared,
     exact_clustering_rs::KMedian,
     exact_clustering_rs::KMedian::weighted_l2_squared
 );
@@ -131,9 +131,9 @@ fn exact_clustering(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<KMedianL1>()?;
     m.add_class::<KMedianL2>()?;
     m.add_class::<KMedianL2Squared>()?;
-    m.add_class::<UnweightedKMedianL1>()?;
-    m.add_class::<UnweightedKMedianL2>()?;
-    m.add_class::<UnweightedKMedianL2Squared>()?;
+    m.add_class::<WeightedKMedianL1>()?;
+    m.add_class::<WeightedKMedianL2>()?;
+    m.add_class::<WeightedKMedianL2Squared>()?;
     Ok(())
 }
 
